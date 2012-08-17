@@ -1,0 +1,7 @@
+{
+  "db": {
+    "type": "mongo"
+  },
+  "debug": true,
+  "secret_key": "herpaderpityderp"
+}
