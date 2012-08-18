@@ -77,7 +77,7 @@ class UserTest(TestBase):
         Utility method to ease writing tests, action to create a test user with
         the provided information, checks success
         '''
-        response = self.app.put('/user/', data=user)
+        response = self.app.post('/user/', data=user)
         self.assertHasStatus(response, httplib.CREATED)
         return response
 
@@ -111,7 +111,7 @@ class UserTest(TestBase):
         self.assertHasStatus(response, httplib.OK)
 
         self.logout_user()
-        response = self.app.post('/user/', data=self.user1)
+        response = self.app.put('/user/', data=self.user1)
         self.assertHasStatus(response, httplib.ACCEPTED)
 
     def test_bad_login(self):
@@ -125,7 +125,7 @@ class UserTest(TestBase):
         self.assertHasStatus(response, httplib.OK)
 
         self.logout_user()
-        response = self.app.post('/user/', data={
+        response = self.app.put('/user/', data={
             "username": self.user1['username'],
             "password": "~~"
         })
@@ -138,7 +138,7 @@ class UserTest(TestBase):
         self.create_user(self.user1)
         self.logout_user()
 
-        response = self.app.put('/user/', data=self.user1)
+        response = self.app.post('/user/', data=self.user1)
         self.assertHasStatus(response, httplib.CONFLICT)
 
     def test_logout(self):
@@ -163,7 +163,7 @@ class UserTest(TestBase):
 
         response = self.app.delete('/user/', data=self.user1)
         self.assertHasStatus(response, httplib.ACCEPTED)
-        response = self.app.post('/user/', data=self.user1)
+        response = self.app.put('/user/', data=self.user1)
         self.assertHasStatus(response, httplib.BAD_REQUEST)
 
 
@@ -189,7 +189,7 @@ class PostTest(TestBase):
         actions
         '''
         TestBase.setUp(self)
-        response = self.app.put('/user/', data=self.user)
+        response = self.app.post('/user/', data=self.user)
 
     def get_threads(self):
         ''' PostTest::get_threads
@@ -216,7 +216,7 @@ class PostTest(TestBase):
         Utility method to create a test thread using the provided information,
         checks that the request succeeded
         '''
-        response = self.app.put('/thread/', data=thread)
+        response = self.app.post('/thread/', data=thread)
         self.assertHasStatus(response, httplib.CREATED)
         return response
 
@@ -255,7 +255,7 @@ class PostTest(TestBase):
         self.create_thread(self.thread1)
         self.app.get('/logout')
 
-        self.app.put('/user/', data={
+        self.app.post('/user/', data={
             "username": "replytester",
             "password": "justreply"
         })
@@ -264,7 +264,7 @@ class PostTest(TestBase):
                 + "1 thread in it.")
 
         thread_id = threads[0]["id"]
-        response = self.app.put("/thread/" + thread_id, data=self.post1)
+        response = self.app.post("/thread/" + thread_id, data=self.post1)
         self.assertHasStatus(response, httplib.CREATED)
         thread = self.get_thread(thread_id)
         self.assertEqual(len(thread["posts"]), 2)
@@ -278,7 +278,7 @@ class PostTest(TestBase):
         }
         self.create_thread(self.thread1)
         threads = self.get_threads()
-        response = self.app.post('/thread/' + threads[0]["id"],
+        response = self.app.put('/thread/' + threads[0]["id"],
                 data=new_thread)
         self.assertHasStatus(response, httplib.ACCEPTED)
 
@@ -296,12 +296,12 @@ class PostTest(TestBase):
         self.create_thread(self.thread1)
         self.app.get('/logout')
 
-        self.app.put('/user/', data={
+        self.app.post('/user/', data={
             "username": "replytester",
             "password": "justreply"
         })
         threads = self.get_threads()
-        response = self.app.post('/thread/' + threads[0]["id"],
+        response = self.app.put('/thread/' + threads[0]["id"],
                 data=new_thread)
         self.assertHasStatus(response, httplib.UNAUTHORIZED)
 
@@ -318,7 +318,7 @@ class PostTest(TestBase):
         thread = self.get_thread(thread_id)
         post_id = thread["posts"][0]["id"]
 
-        response = self.app.post('/post/' + post_id, data=new_post)
+        response = self.app.put('/post/' + post_id, data=new_post)
         self.assertHasStatus(response, httplib.ACCEPTED)
         response = self.app.get('/post/' + post_id)
         post = json.loads(response.data)

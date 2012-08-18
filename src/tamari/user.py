@@ -8,9 +8,9 @@ db = connect()
 from flask import request, session, abort
 
 
-@app.route('/user/', methods=['POST'])
+@app.route('/user/', methods=['PUT'])
 def login():
-    ''' login -> POST /user/
+    ''' login -> PUT /user/
     attempts a login with the provided information, if successful, stores the
     user's id in the session and returns the user information
     '''
@@ -34,9 +34,9 @@ def logout():
     return "", httplib.ACCEPTED
 
 
-@app.route('/user/', methods=['PUT'])
+@app.route('/user/', methods=['POST'])
 def register():
-    ''' register -> PUT /user/
+    ''' register -> POST /user/
     attempts to create/'register' a new user with the provided information,
     will return a CONFLICT error if the username already is registered.  If
     successful, the user id is stored in the session, logging in the user

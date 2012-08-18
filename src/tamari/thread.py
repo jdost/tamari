@@ -26,9 +26,9 @@ def get_thread(thread_id):
     return json.dumps(db.Thread.get(thread_id))
 
 
-@app.route('/thread/', methods=['PUT'])
+@app.route('/thread/', methods=['POST'])
 def create_thread():
-    ''' create_thread -> PUT /thread/
+    ''' create_thread -> POST /thread/
     Creates a thread for the forum
     '''
     title = request.form['title']
@@ -42,9 +42,9 @@ def create_thread():
     return "", httplib.CREATED
 
 
-@app.route('/thread/<thread_id>', methods=['POST'])
+@app.route('/thread/<thread_id>', methods=['PUT'])
 def edit_thread(thread_id):
-    ''' edit_thread -> POST /thread/<thread_id>
+    ''' edit_thread -> PUT /thread/<thread_id>
     If the user is the one who created the thread, will save edits to the
     thread details, otherwise tosses an error
     '''
@@ -59,9 +59,9 @@ def edit_thread(thread_id):
     return "", httplib.ACCEPTED
 
 
-@app.route('/post/<post_id>', methods=['POST'])
+@app.route('/post/<post_id>', methods=['PUT'])
 def edit_post(post_id):
-    ''' edit_post -> POST /post/<post_id>
+    ''' edit_post -> PUT /post/<post_id>
     '''
     content = request.form['content']
     try:
@@ -81,9 +81,9 @@ def view_post(post_id):
     return json.dumps(db.Thread.get_post(post_id))
 
 
-@app.route('/thread/<thread_id>', methods=['PUT'])
+@app.route('/thread/<thread_id>', methods=['POST'])
 def replyto_thread(thread_id):
-    ''' replyto_thread -> PUT /thread/<thread_id>
+    ''' replyto_thread -> POST /thread/<thread_id>
     Replies to the thread, creates another post in the thread
     '''
     content = request.form['content']
