@@ -1,4 +1,4 @@
-from settings import settings
+from tamari.settings import settings
 import db_errors
 
 DEFAULT = "mongo"

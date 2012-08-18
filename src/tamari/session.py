@@ -8,8 +8,7 @@ class Session(dict, SessionMixin):
 
 
 class Sessions(SessionInterface):
-    '''
-Sessions
+    ''' Sessions
     class implementing the SessionInterface for Flask to store the sessions in
     the database, this could always use plenty of work.
     '''
@@ -17,8 +16,7 @@ Sessions
         self.db = db
 
     def open_session(self, app, request):
-        '''
-    Sessions::open_session
+        ''' Sessions::open_session
         if no key is stored in the cookies, returns None, otherwise will return
         the data packet stored in the database using the key retrieved from the
         cookie.
@@ -28,8 +26,7 @@ Sessions
         return self.db.Session.get(request.cookies[SESSION_KEY])
 
     def save_session(self, app, session, response):
-        '''
-    Sessions::save_session
+        ''' Sessions::save_session
         saves the session packet into the database and checks if this is a new
         session packet or not (if the is an id in the packet), if it is new,
         the id will be stored as a cookie for future lookup

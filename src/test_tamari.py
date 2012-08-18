@@ -269,6 +269,68 @@ class PostTest(TestBase):
         thread = self.get_thread(thread_id)
         self.assertEqual(len(thread["posts"]), 2)
 
+    def test_good_edit_thread(self):
+        ''' PostTest::test_good_edit_thread
+        Tests that editting a thread works correctly
+        '''
+        new_thread = {
+            "title": "Editted thread title"
+        }
+        self.create_thread(self.thread1)
+        threads = self.get_threads()
+        response = self.app.post('/thread/' + threads[0]["id"],
+                data=new_thread)
+        self.assertHasStatus(response, httplib.ACCEPTED)
+
+        threads = self.get_threads()
+        self.assertEqual(len(threads), 1)
+        self.assertEqual(threads[0]["title"], new_thread["title"])
+
+    def test_bad_edit_thread(self):
+        ''' PostTest::test_bad_edit_thread
+        Tests that editting a thread with the wrong user fails
+        '''
+        new_thread = {
+            "title": "Editted thread title"
+        }
+        self.create_thread(self.thread1)
+        self.app.get('/logout')
+
+        self.app.put('/user/', data={
+            "username": "replytester",
+            "password": "justreply"
+        })
+        threads = self.get_threads()
+        response = self.app.post('/thread/' + threads[0]["id"],
+                data=new_thread)
+        self.assertHasStatus(response, httplib.UNAUTHORIZED)
+
+    def test_good_edit_post(self):
+        ''' PostTest::test_good_edit_post
+        Tests that editting a post works correctly
+        '''
+        new_post = {
+            "content": "This is the editted post content"
+        }
+        self.create_thread(self.thread1)
+        threads = self.get_threads()
+        thread_id = threads[0]["id"]
+        thread = self.get_thread(thread_id)
+        post_id = thread["posts"][0]["id"]
+
+        response = self.app.post('/post/' + post_id, data=new_post)
+        self.assertHasStatus(response, httplib.ACCEPTED)
+        response = self.app.get('/post/' + post_id)
+        post = json.loads(response.data)
+        self.assertEqual(post['content'], new_post['content'])
+
+
+    def test_bad_edit_post(self):
+        ''' PostTest::test_bad_edit_post
+        Tests that editting a post with the wrong user fails
+        '''
+        pass
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=VERBOSITY)

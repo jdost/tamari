@@ -75,5 +75,15 @@ def show_current():
     '''
     if 'id' not in session:
         abort(httplib.UNAUTHORIZED)
-    info = db.User.get(session["id"])
+    info = db.User.get(session["id"], True)
+    return json.dumps(info)
+
+
+@app.route('/user/<user_id>', methods=['GET'])
+def get_user(user_id):
+    ''' get_user -> GET /user/<user_id>
+    simple retrieval of the public user information of the specified user,
+    based on their ID
+    '''
+    info = db.User.get(user_id, False)
     return json.dumps(info)

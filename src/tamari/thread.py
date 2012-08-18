@@ -2,7 +2,7 @@ import json
 import httplib
 import datetime
 from tamari import app
-from db import connect
+from db import connect, db_errors
 
 db = connect()
 from flask import request, session, abort
@@ -40,6 +40,45 @@ def create_thread():
         "datetime": datetime.datetime.utcnow()
     })
     return "", httplib.CREATED
+
+
+@app.route('/thread/<thread_id>', methods=['POST'])
+def edit_thread(thread_id):
+    ''' edit_thread -> POST /thread/<thread_id>
+    If the user is the one who created the thread, will save edits to the
+    thread details, otherwise tosses an error
+    '''
+    title = request.form['title']
+    try:
+        db.Thread.edit_thread(thread_id, session['id'], {
+            "title": title,
+            "datetime": datetime.datetime.utcnow()
+        })
+    except db_errors.BadPermissionsError:
+        abort(httplib.UNAUTHORIZED)
+    return "", httplib.ACCEPTED
+
+
+@app.route('/post/<post_id>', methods=['POST'])
+def edit_post(post_id):
+    ''' edit_post -> POST /post/<post_id>
+    '''
+    content = request.form['content']
+    try:
+        db.Thread.edit_post(post_id, session['id'], {
+            "content": content,
+            "datetime": datetime.datetime.utcnow()
+        })
+    except db_errors.BadPermissionsError:
+        abort(httplib.UNAUTHORIZED)
+    return "", httplib.ACCEPTED
+
+
+@app.route('/post/<post_id>', methods=['GET'])
+def view_post(post_id):
+    ''' view_post -> GET /post/<post_id>
+    '''
+    return json.dumps(db.Thread.get_post(post_id))
 
 
 @app.route('/thread/<thread_id>', methods=['PUT'])

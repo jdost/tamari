@@ -1,6 +1,6 @@
 import pymongo as mongo
 import db_errors
-from settings import settings
+from tamari.settings import settings
 from bson.objectid import ObjectId
 
 # Default properties
@@ -25,7 +25,8 @@ def cleanup():
 def clean_dict(src, keys):
     dst = {}
     for key in keys:
-        dst[key] = src[key] if key in src else None
+        if key in src.keys():
+            dst[key] = src[key]
     return dst
 
 
@@ -37,9 +38,9 @@ class Thread:
     much larger table of posts which all belong to a thread
     '''
     threads = database.threads
-    thread_keys = ["title", "user", "head", "datetime"]
+    thread_keys = ["title", "user", "head", "datetime", "_id"]
     posts = database.posts
-    post_keys = ["content", "user", "thread", "datetime"]
+    post_keys = ["content", "user", "thread", "datetime", "_id"]
 
     @classmethod
     def create(cls, info=None):
@@ -64,6 +65,21 @@ class Thread:
         cls.posts.save(post)
 
     @classmethod
+    def edit_thread(cls, id, user, info):
+        ''' Thread::edit_thread
+        Modifies the thread entry in the database based on the thread id that
+        is passed in.  First checks that the user id provided is the same as
+        the user that created the thread, if it is not, raises an error,
+        otherwise the thread will be updated with the provided information.
+        '''
+        id = ObjectId(id)
+        thread = cls.threads.find_one({"_id": id})
+        if str(thread["user"]) != user:
+            raise db_errors.BadPermissionsError()
+        thread.update(info)
+        cls.threads.save(clean_dict(thread, cls.thread_keys))
+
+    @classmethod
     def get(cls, id=None, limit=0, start=0):
         ''' Thread::get
         Retrieval function for threads.  The purpose is to return all of the
@@ -71,7 +87,6 @@ class Thread:
         return more granular information on that single thread, if it is not,
         a list of threads with a simple summary will be returned instead.
         '''
-        end = (start + limit) if (start and limit) else None
         if not id:
             threads = cls.threads.find(skip=start, limit=limit,
                     sort=[("datetime", mongo.DESCENDING)])
@@ -79,9 +94,26 @@ class Thread:
         else:
             id = ObjectId(id)
             thread = cls.threads.find_one({"_id": id})
+            if not thread:
+                raise db_errors.IncorrectIdError()
             posts = cls.posts.find({"thread": id}, skip=start, limit=limit,
                     sort=[("datetime", mongo.ASCENDING)])
             return cls.__full(thread, posts)
+
+    @classmethod
+    def get_post(cls, id=None):
+        ''' Thread::get_post
+        Retrieval function to get a single post.  Just requires the identifier
+        for the desired post and will return the entry in the database.  If the
+        identifier is not found or provided, an error will be raised.
+        '''
+        if not id:
+            raise db_errors.MissingInfoError()
+        id = ObjectId(id)
+        post = cls.posts.find_one({"_id": id})
+        if not post:
+            raise db_errors.IncorrectIdError()
+        return cls.__post(post)
 
     @classmethod
     def reply(cls, id=None, post=None):
@@ -98,6 +130,20 @@ class Thread:
         post = clean_dict(post, cls.post_keys)
         post["thread"] = ObjectId(id)
         cls.posts.save(post)
+
+    @classmethod
+    def edit_post(cls, id, user, info):
+        ''' Thread::edit_post
+        Modifies the post entry in the databased based on the post id that is
+        passed in.  First checks that the passed in user id is the same as the
+        one attached to the post itself, otherwise raises an error.
+        '''
+        id = ObjectId(id)
+        post = cls.posts.find_one({"_id": id})
+        if str(post["user"]) != user:
+            raise db_errors.BadPermissionsError()
+        post.update(info)
+        cls.posts.save(clean_dict(post, cls.post_keys))
 
     @classmethod
     def __short(cls, thread):
@@ -128,6 +174,7 @@ class Thread:
         ''' (private) ::__post
         '''
         return {
+            "id": str(post["_id"]),
             "content": post["content"],
             "datetime": str(post["datetime"]),
             "user": str(post["user"])
@@ -170,7 +217,7 @@ class User:
         return None, None
 
     @classmethod
-    def get(cls, id=None):
+    def get(cls, id=None, private=False):
         ''' User::get
         Returns the public form of the user with the provided ID, if no ID is
         provided, throws an error.  If no user is found with the ID, returns
@@ -180,7 +227,7 @@ class User:
             raise db_errors.MissingInfoError('No ID for the user request')
         user = cls.db.find_one({"_id": ObjectId(id)})
         if user:
-            return cls.__public(user)
+            return cls.__public(user) if not private else cls.__private(user)
         return None
 
     @classmethod
