@@ -1,2 +1,2 @@
-from tamari import app
-app.run(debug=True)
+import tamari
+tamari.app.run()

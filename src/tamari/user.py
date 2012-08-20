@@ -50,6 +50,7 @@ def register():
         })
     except db_errors.ExistingUsernameError:
         return "", httplib.CONFLICT
+
     session['id'] = str(id)
     return str(id), httplib.CREATED
 
