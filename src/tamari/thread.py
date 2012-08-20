@@ -8,14 +8,12 @@ db = connect()
 from flask import request, session, abort
 
 
-@app.route('/thread/', methods=['GET'])
+@app.route('/thread', methods=['GET'])
 def get_threads():
     ''' get_threads -> GET /thread/
     gets a list of the threads
     '''
-    return json.dumps({
-        "threads": db.Thread.get()
-    })
+    return json.dumps(db.Thread.get())
 
 
 @app.route('/thread/<thread_id>', methods=['GET'])
@@ -26,20 +24,20 @@ def get_thread(thread_id):
     return json.dumps(db.Thread.get(thread_id))
 
 
-@app.route('/thread/', methods=['POST'])
+@app.route('/thread', methods=['POST'])
 def create_thread():
     ''' create_thread -> POST /thread/
     Creates a thread for the forum
     '''
     title = request.form['title']
     content = request.form['content']
-    db.Thread.create({
+    id = db.Thread.create({
         "title": title,
         "content": content,
         "user": session['id'],
         "datetime": datetime.datetime.utcnow()
     })
-    return "", httplib.CREATED
+    return str(id), httplib.CREATED
 
 
 @app.route('/thread/<thread_id>', methods=['PUT'])
@@ -56,7 +54,7 @@ def edit_thread(thread_id):
         })
     except db_errors.BadPermissionsError:
         abort(httplib.UNAUTHORIZED)
-    return "", httplib.ACCEPTED
+    return thread_id, httplib.ACCEPTED
 
 
 @app.route('/post/<post_id>', methods=['PUT'])
@@ -65,13 +63,13 @@ def edit_post(post_id):
     '''
     content = request.form['content']
     try:
-        db.Thread.edit_post(post_id, session['id'], {
+        id = db.Thread.edit_post(post_id, session['id'], {
             "content": content,
             "datetime": datetime.datetime.utcnow()
         })
     except db_errors.BadPermissionsError:
         abort(httplib.UNAUTHORIZED)
-    return "", httplib.ACCEPTED
+    return str(id), httplib.ACCEPTED
 
 
 @app.route('/post/<post_id>', methods=['GET'])
@@ -87,9 +85,9 @@ def replyto_thread(thread_id):
     Replies to the thread, creates another post in the thread
     '''
     content = request.form['content']
-    db.Thread.reply(thread_id, {
+    id = db.Thread.reply(thread_id, {
         "content": content,
         "user": session["id"],
         "datetime": datetime.datetime.utcnow()
     })
-    return "", httplib.CREATED
+    return str(id), httplib.CREATED

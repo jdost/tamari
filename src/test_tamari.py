@@ -77,7 +77,7 @@ class UserTest(TestBase):
         Utility method to ease writing tests, action to create a test user with
         the provided information, checks success
         '''
-        response = self.app.post('/user/', data=user)
+        response = self.app.post('/user', data=user)
         self.assertHasStatus(response, httplib.CREATED)
         return response
 
@@ -96,7 +96,7 @@ class UserTest(TestBase):
         '''
         self.create_user(self.user1)
 
-        response = self.app.get('/user/')
+        response = self.app.get('/user')
         self.assertHasStatus(response, httplib.OK)
         response_data = json.loads(response.data)
         self.assertEqual(self.user1["username"], response_data["username"])
@@ -107,11 +107,11 @@ class UserTest(TestBase):
         the system with the same credentials
         '''
         self.create_user(self.user1)
-        response = self.app.get('/user/')
+        response = self.app.get('/user')
         self.assertHasStatus(response, httplib.OK)
 
         self.logout_user()
-        response = self.app.put('/user/', data=self.user1)
+        response = self.app.put('/user', data=self.user1)
         self.assertHasStatus(response, httplib.ACCEPTED)
 
     def test_bad_login(self):
@@ -121,11 +121,11 @@ class UserTest(TestBase):
         should fail with the bad password)
         '''
         self.create_user(self.user1)
-        response = self.app.get('/user/')
+        response = self.app.get('/user')
         self.assertHasStatus(response, httplib.OK)
 
         self.logout_user()
-        response = self.app.put('/user/', data={
+        response = self.app.put('/user', data={
             "username": self.user1['username'],
             "password": "~~"
         })
@@ -138,7 +138,7 @@ class UserTest(TestBase):
         self.create_user(self.user1)
         self.logout_user()
 
-        response = self.app.post('/user/', data=self.user1)
+        response = self.app.post('/user', data=self.user1)
         self.assertHasStatus(response, httplib.CONFLICT)
 
     def test_logout(self):
@@ -146,11 +146,11 @@ class UserTest(TestBase):
         Tests that the logout action successfully works
         '''
         self.create_user(self.user1)
-        response = self.app.get('/user/')
+        response = self.app.get('/user')
         self.assertHasStatus(response, httplib.OK)
 
         self.logout_user()
-        response = self.app.get('/user/')
+        response = self.app.get('/user')
         self.assertHasStatus(response, httplib.UNAUTHORIZED)
 
     def test_delete_user(self):
@@ -158,12 +158,12 @@ class UserTest(TestBase):
         Tests that the user can delete their account
         '''
         self.create_user(self.user1)
-        response = self.app.get('/user/')
+        response = self.app.get('/user')
         self.assertHasStatus(response, httplib.OK)
 
-        response = self.app.delete('/user/', data=self.user1)
+        response = self.app.delete('/user', data=self.user1)
         self.assertHasStatus(response, httplib.ACCEPTED)
-        response = self.app.put('/user/', data=self.user1)
+        response = self.app.put('/user', data=self.user1)
         self.assertHasStatus(response, httplib.BAD_REQUEST)
 
 
@@ -189,7 +189,7 @@ class PostTest(TestBase):
         actions
         '''
         TestBase.setUp(self)
-        response = self.app.post('/user/', data=self.user)
+        response = self.app.post('/user', data=self.user)
 
     def get_threads(self):
         ''' PostTest::get_threads
@@ -197,9 +197,9 @@ class PostTest(TestBase):
         does the JSON parsing of the response data, returning the array of
         threads
         '''
-        response = self.app.get('/thread/')
+        response = self.app.get('/thread')
         self.assertHasStatus(response, httplib.OK)
-        return json.loads(response.data)["threads"]
+        return json.loads(response.data)
 
     def get_thread(self, thread_id):
         ''' PostTest::get_thread
@@ -216,7 +216,7 @@ class PostTest(TestBase):
         Utility method to create a test thread using the provided information,
         checks that the request succeeded
         '''
-        response = self.app.post('/thread/', data=thread)
+        response = self.app.post('/thread', data=thread)
         self.assertHasStatus(response, httplib.CREATED)
         return response
 
@@ -255,7 +255,7 @@ class PostTest(TestBase):
         self.create_thread(self.thread1)
         self.app.get('/logout')
 
-        self.app.post('/user/', data={
+        self.app.post('/user', data={
             "username": "replytester",
             "password": "justreply"
         })
@@ -296,7 +296,7 @@ class PostTest(TestBase):
         self.create_thread(self.thread1)
         self.app.get('/logout')
 
-        self.app.post('/user/', data={
+        self.app.post('/user', data={
             "username": "replytester",
             "password": "justreply"
         })

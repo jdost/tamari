@@ -8,7 +8,7 @@ db = connect()
 from flask import request, session, abort
 
 
-@app.route('/user/', methods=['PUT'])
+@app.route('/user', methods=['PUT'])
 def login():
     ''' login -> PUT /user/
     attempts a login with the provided information, if successful, stores the
@@ -21,7 +21,7 @@ def login():
         session['id'] = str(id)
         return json.dumps(info), httplib.ACCEPTED
     else:
-        return "", httplib.BAD_REQUEST
+        return str(id), httplib.BAD_REQUEST
 
 
 @app.route('/logout', methods=['GET'])
@@ -34,7 +34,7 @@ def logout():
     return "", httplib.ACCEPTED
 
 
-@app.route('/user/', methods=['POST'])
+@app.route('/user', methods=['POST'])
 def register():
     ''' register -> POST /user/
     attempts to create/'register' a new user with the provided information,
@@ -51,10 +51,10 @@ def register():
     except db_errors.ExistingUsernameError:
         return "", httplib.CONFLICT
     session['id'] = str(id)
-    return "", httplib.CREATED
+    return str(id), httplib.CREATED
 
 
-@app.route('/user/', methods=['DELETE'])
+@app.route('/user', methods=['DELETE'])
 def delete_user():
     ''' delete_user -> DELETE /user/
     will try to delete the user's entry from the database and then log the user
@@ -67,7 +67,7 @@ def delete_user():
     return "", httplib.ACCEPTED
 
 
-@app.route('/user/', methods=['GET'])
+@app.route('/user', methods=['GET'])
 def show_current():
     ''' show_current -> GET /user/
     simple retrieval of the user information at any time, same information

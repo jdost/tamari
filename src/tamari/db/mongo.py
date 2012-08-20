@@ -63,6 +63,7 @@ class Thread:
         post["thread"] = thread_id
         post["_id"] = post_id
         cls.posts.save(post)
+        return thread_id
 
     @classmethod
     def edit_thread(cls, id, user, info):
@@ -78,6 +79,7 @@ class Thread:
             raise db_errors.BadPermissionsError()
         thread.update(info)
         cls.threads.save(clean_dict(thread, cls.thread_keys))
+        return id
 
     @classmethod
     def get(cls, id=None, limit=0, start=0):
@@ -129,7 +131,7 @@ class Thread:
         post['user'] = ObjectId(post['user'])
         post = clean_dict(post, cls.post_keys)
         post["thread"] = ObjectId(id)
-        cls.posts.save(post)
+        return cls.posts.save(post)
 
     @classmethod
     def edit_post(cls, id, user, info):
@@ -143,7 +145,7 @@ class Thread:
         if str(post["user"]) != user:
             raise db_errors.BadPermissionsError()
         post.update(info)
-        cls.posts.save(clean_dict(post, cls.post_keys))
+        return cls.posts.save(clean_dict(post, cls.post_keys))
 
     @classmethod
     def __short(cls, thread):
