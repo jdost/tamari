@@ -2,9 +2,9 @@ import json
 import httplib
 import datetime
 from tamari import app
-from db import connect, db_errors
+from db import db_errors
 
-db = connect()
+db = app.db
 from flask import request, session, abort
 
 

@@ -324,7 +324,6 @@ class PostTest(TestBase):
         post = json.loads(response.data)
         self.assertEqual(post['content'], new_post['content'])
 
-
     def test_bad_edit_post(self):
         ''' PostTest::test_bad_edit_post
         Tests that editting a post with the wrong user fails

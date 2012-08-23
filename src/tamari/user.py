@@ -1,10 +1,9 @@
-from db import connect
 from db import db_errors
 import json
 import httplib
 from tamari import pwhash, app
 
-db = connect()
+db = app.db
 from flask import request, session, abort
 
 

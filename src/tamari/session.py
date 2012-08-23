@@ -23,7 +23,8 @@ class Sessions(SessionInterface):
         '''
         if SESSION_KEY not in request.cookies:
             return Session()
-        return self.db.Session.get(request.cookies[SESSION_KEY])
+        session = self.db.Session.get(request.cookies[SESSION_KEY])
+        return session if session else Session()
 
     def save_session(self, app, session, response):
         ''' Sessions::save_session

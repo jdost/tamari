@@ -248,7 +248,8 @@ class User:
         to standardize the output format from the DB wrapper to the API layer.
         '''
         return {
-            'username': user['username']
+            'username': user['username'],
+            'id': str(user['_id'])
         }
 
     @classmethod
