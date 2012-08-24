@@ -3,8 +3,8 @@ import json
 import httplib
 
 
-class PostTest(TestBase):
-    ''' PostTest
+class ThreadTest(TestBase):
+    ''' ThreadTest
     Test Suite to test the operations involving posts and threads
     '''
     user = {
@@ -20,7 +20,7 @@ class PostTest(TestBase):
     }
 
     def setUp(self):
-        ''' PostTest::setUp
+        ''' ThreadTest::setUp
         Addition to the TestBase.setUp, creates a user to use in the thread
         actions
         '''
@@ -28,7 +28,7 @@ class PostTest(TestBase):
         response = self.app.post('/user', data=self.user)
 
     def get_threads(self):
-        ''' PostTest::get_threads
+        ''' ThreadTest::get_threads
         Utility method to get the list of threads, checks for success and
         does the JSON parsing of the response data, returning the array of
         threads
@@ -38,7 +38,7 @@ class PostTest(TestBase):
         return json.loads(response.data)
 
     def get_thread(self, thread_id):
-        ''' PostTest::get_thread
+        ''' ThreadTest::get_thread
         Utility method to get a specific thread as determined by the single
         argument, which should be from the thread list, checks the success and
         returns the JSON parsed thread information
@@ -48,7 +48,7 @@ class PostTest(TestBase):
         return json.loads(response.data)
 
     def create_thread(self, thread):
-        ''' PostTest::create_thread
+        ''' ThreadTest::create_thread
         Utility method to create a test thread using the provided information,
         checks that the request succeeded
         '''
@@ -57,7 +57,7 @@ class PostTest(TestBase):
         return response
 
     def test_get_empty_threads(self):
-        ''' PostTest::test_get_empty_threads
+        ''' ThreadTest::test_get_empty_threads
         Simple test to see that the thread set is empty by default, if this is
         failing, most of the other tests will probably fail and something is
         wrong in the test setup
@@ -66,7 +66,7 @@ class PostTest(TestBase):
         self.assertEmpty(threads)
 
     def test_create_thread(self):
-        ''' PostTest::test_create_thread
+        ''' ThreadTest::test_create_thread
         Simple test to see that a thread can be created and retrieved, checks
         that the thread contains the proper data
         '''
@@ -85,7 +85,7 @@ class PostTest(TestBase):
                 self.thread1['content'], "Incorrect content on the post.")
 
     def test_replyto_thread(self):
-        ''' PostTest::test_replyto_thread
+        ''' ThreadTest::test_replyto_thread
         Tests that another user can reply to a thread
         '''
         self.create_thread(self.thread1)
@@ -106,7 +106,7 @@ class PostTest(TestBase):
         self.assertEqual(len(thread["posts"]), 2)
 
     def test_good_edit_thread(self):
-        ''' PostTest::test_good_edit_thread
+        ''' ThreadTest::test_good_edit_thread
         Tests that editting a thread works correctly
         '''
         new_thread = {
@@ -123,7 +123,7 @@ class PostTest(TestBase):
         self.assertEqual(threads[0]["title"], new_thread["title"])
 
     def test_bad_edit_thread(self):
-        ''' PostTest::test_bad_edit_thread
+        ''' ThreadTest::test_bad_edit_thread
         Tests that editting a thread with the wrong user fails
         '''
         new_thread = {
@@ -142,7 +142,7 @@ class PostTest(TestBase):
         self.assertHasStatus(response, httplib.UNAUTHORIZED)
 
     def test_good_edit_post(self):
-        ''' PostTest::test_good_edit_post
+        ''' ThreadTest::test_good_edit_post
         Tests that editting a post works correctly
         '''
         new_post = {
@@ -161,7 +161,7 @@ class PostTest(TestBase):
         self.assertEqual(post['content'], new_post['content'])
 
     def test_bad_edit_post(self):
-        ''' PostTest::test_bad_edit_post
+        ''' ThreadTest::test_bad_edit_post
         Tests that editting a post with the wrong user fails
         '''
         pass
