@@ -45,6 +45,6 @@ app.debug = settings["debug"]
 app.db = db
 
 
-import tamari.user, tamari.thread
+import tamari.user, tamari.thread, tamari.api
 if __name__ == '__main__':
     app.run()
