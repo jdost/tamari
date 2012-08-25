@@ -2,6 +2,7 @@ from db import connect
 from settings import settings
 import hashlib
 
+VERSION = "0.2"
 db = connect()
 
 
@@ -44,6 +45,10 @@ app.secret_key = settings["secret_key"]
 app.debug = settings["debug"]
 app.db = db
 
+
+@app.route('/version')
+def get_version():
+    return VERSION
 
 import tamari.user, tamari.thread, tamari.api
 if __name__ == '__main__':
