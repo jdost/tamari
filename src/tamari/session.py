@@ -1,9 +1,14 @@
 from flask.sessions import SessionInterface, SessionMixin
+from settings import settings
 
-SESSION_KEY = 'session_key'
+SESSION_KEY = settings.get('session_key', 'session_key')
 
 
 class Session(dict, SessionMixin):
+    def __init__(self, *args, **kwargs):
+        dict.__init__(self, *args, **kwargs)
+        self.update(settings.get('session_defaults', {}))
+
     pass
 
 

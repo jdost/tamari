@@ -12,6 +12,10 @@ class APITest(TestBase):
         "username": "apitester",
         "password": "justtest"
     }
+    thread = {
+        "title": "settings thread",
+        "content": "settings thread stuff"
+    }
 
     def create_user(self, user=None):
         ''' APITest::create_user
@@ -64,3 +68,35 @@ class APITest(TestBase):
         self.assertHasStatus(response, httplib.OK)
         settings = self.get_settings()
         self.assertEqual(settings["foo"], "bar")
+
+    def test_dateformat(self):
+        ''' APITest::test_dateformat
+        Tests that the date_format setting is properly working, this means
+        testing 'epoch', 'iso', and the strftime strings
+        '''
+        import datetime, time
+        def get_thread_dt(thread_id):  # short helper function
+            response = self.app.get('/thread/' + thread_id)
+            self.assertHasStatus(response, httplib.OK)
+            return json.loads(response.data)["datetime"]
+        # create the user & thread
+        self.create_user()
+        response = self.app.post('/thread', data=self.thread)
+        self.assertHasStatus(response, httplib.CREATED)
+        thread = response.data
+        # test the ISO format, parses out a datetime object from this
+        response = self.app.post('/settings', data={ "date_format": "iso" })
+        self.assertHasStatus(response, httplib.OK)
+        datetime_str = get_thread_dt(thread)
+        datetime_obj = datetime.datetime.strptime(datetime_str,
+                "%Y-%m-%dT%H:%M:%S.%f")
+        # test the 'epoch' format, checks that it matchs the ISO dt object
+        response = self.app.post('/settings', data={ "date_format": "epoch" })
+        self.assertHasStatus(response, httplib.OK)
+        datetime_int = get_thread_dt(thread)
+        self.assertEqual(datetime_int, time.mktime(datetime_obj.timetuple()))
+        # test a custom format, checks against the output of the ISO dt object
+        response = self.app.post('/settings', data={ "date_format": "%d%%%m" })
+        self.assertHasStatus(response, httplib.OK)
+        datetime_str = get_thread_dt(thread)
+        self.assertEqual(datetime_str, datetime_obj.strftime("%d%%%m"))

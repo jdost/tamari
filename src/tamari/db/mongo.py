@@ -155,7 +155,7 @@ class Thread:
         return {
             "id": str(thread["_id"]),
             "title": thread["title"],
-            "datetime": str(thread["datetime"]),
+            "datetime": thread["datetime"],
             "user": str(thread["user"])
         }
 
@@ -167,7 +167,7 @@ class Thread:
             "id": str(thread["_id"]),
             "title": thread["title"],
             "user": str(thread["user"]),
-            "datetime": str(thread["datetime"]),
+            "datetime": thread["datetime"],
             "posts": [cls.__post(post) for post in posts]
         }
 
@@ -178,7 +178,7 @@ class Thread:
         return {
             "id": str(post["_id"]),
             "content": post["content"],
-            "datetime": str(post["datetime"]),
+            "datetime": post["datetime"],
             "user": str(post["user"])
         }
 

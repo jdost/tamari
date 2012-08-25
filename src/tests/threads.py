@@ -70,12 +70,15 @@ class ThreadTest(TestBase):
         Simple test to see that a thread can be created and retrieved, checks
         that the thread contains the proper data
         '''
-        self.create_thread(self.thread1)
+        response = self.create_thread(self.thread1)
+        thread_id_ = response.data
         threads = self.get_threads()
         self.assertEqual(len(threads), 1, "Thread pool is empty, should have "
                 + "1 thread in it.")
 
         thread_id = threads[0]["id"]
+        self.assertEqual(thread_id, thread_id_, "Thread ID returned from the "
+                + "POST doesn't match the listing")
         thread = self.get_thread(thread_id)
         self.assertEqual(thread['title'], self.thread1['title'], "Incorrect "
                 + "title for the thread.")

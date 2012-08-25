@@ -1,6 +1,7 @@
 import json
 import httplib
 import datetime
+import time
 from tamari import app
 from db import db_errors
 
@@ -8,12 +9,33 @@ db = app.db
 from flask import request, session, abort
 
 
+class DateEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            if 'date_format' not in session:
+                return str(obj)
+
+            if session['date_format'] == 'iso':
+                return obj.isoformat()
+            elif session['date_format'] == 'epoch':
+                return time.mktime(obj.timetuple())
+            else:
+                return obj.strftime(session['date_format'])
+        return json.JSONEncoder.default(self, obj)
+
+
+JSON_KWARGS = {
+    "cls": DateEncoder,
+    "separators": (',',':')
+}
+
+
 @app.route('/thread', methods=['GET'])
 def get_threads():
     ''' get_threads -> GET /thread/
     gets a list of the threads
     '''
-    return json.dumps(db.Thread.get())
+    return json.dumps(db.Thread.get(), **JSON_KWARGS)
 
 
 @app.route('/thread/<thread_id>', methods=['GET'])
@@ -21,7 +43,7 @@ def get_thread(thread_id):
     ''' get_thread -> GET /thread/<thread_id>
     get the full thread based on the specified thread_id
     '''
-    return json.dumps(db.Thread.get(thread_id))
+    return json.dumps(db.Thread.get(thread_id), **JSON_KWARGS)
 
 
 @app.route('/thread', methods=['POST'])
@@ -76,7 +98,7 @@ def edit_post(post_id):
 def view_post(post_id):
     ''' view_post -> GET /post/<post_id>
     '''
-    return json.dumps(db.Thread.get_post(post_id))
+    return json.dumps(db.Thread.get_post(post_id), **JSON_KWARGS)
 
 
 @app.route('/thread/<thread_id>', methods=['POST'])

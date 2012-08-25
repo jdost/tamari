@@ -2,6 +2,9 @@
   "db": {
     "type": "mongo"
   },
+  "session_defaults": {
+    "date_format": "isoformat"
+  },
   "debug": true,
   "secret_key": "herpaderpityderp"
 }
