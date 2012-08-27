@@ -30,6 +30,12 @@ def clean_dict(src, keys):
     return dst
 
 
+def check_permissions(src, user):
+    if str(src["user"]) != user["id"]:
+        return False  # Check non-owner permissions, i.e. is an admin
+    return True
+
+
 class Thread:
     ''' Thread
     The wrapper class for operations on threads in the database backend, there
@@ -75,7 +81,7 @@ class Thread:
         '''
         id = ObjectId(id)
         thread = cls.threads.find_one({"_id": id})
-        if str(thread["user"]) != user:
+        if not check_permissions(thread, user):
             raise db_errors.BadPermissionsError()
         thread.update(info)
         cls.threads.save(clean_dict(thread, cls.thread_keys))
@@ -142,7 +148,7 @@ class Thread:
         '''
         id = ObjectId(id)
         post = cls.posts.find_one({"_id": id})
-        if str(post["user"]) != user:
+        if not check_permissions(post, user):
             raise db_errors.BadPermissionsError()
         post.update(info)
         return cls.posts.save(clean_dict(post, cls.post_keys))

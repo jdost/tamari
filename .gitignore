@@ -1,3 +1,4 @@
 *.pyc
 tamari.conf
 sample/*
+notes/*

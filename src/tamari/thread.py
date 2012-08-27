@@ -70,7 +70,7 @@ def edit_thread(thread_id):
     '''
     title = request.form['title']
     try:
-        db.Thread.edit_thread(thread_id, session['id'], {
+        db.Thread.edit_thread(thread_id, session, {
             "title": title,
             "datetime": datetime.datetime.utcnow()
         })
@@ -85,7 +85,7 @@ def edit_post(post_id):
     '''
     content = request.form['content']
     try:
-        id = db.Thread.edit_post(post_id, session['id'], {
+        id = db.Thread.edit_post(post_id, session, {
             "content": content,
             "datetime": datetime.datetime.utcnow()
         })
