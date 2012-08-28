@@ -57,7 +57,7 @@ def create_thread():
         "title": title,
         "content": content,
         "user": session['id'],
-        "datetime": datetime.datetime.utcnow()
+        "created": datetime.datetime.utcnow()
     })
     return str(id), httplib.CREATED
 
@@ -72,7 +72,7 @@ def edit_thread(thread_id):
     try:
         db.Thread.edit_thread(thread_id, session, {
             "title": title,
-            "datetime": datetime.datetime.utcnow()
+            "editted": datetime.datetime.utcnow()
         })
     except db_errors.BadPermissionsError:
         abort(httplib.UNAUTHORIZED)
@@ -87,7 +87,7 @@ def edit_post(post_id):
     try:
         id = db.Thread.edit_post(post_id, session, {
             "content": content,
-            "datetime": datetime.datetime.utcnow()
+            "editted": datetime.datetime.utcnow()
         })
     except db_errors.BadPermissionsError:
         abort(httplib.UNAUTHORIZED)
@@ -110,6 +110,6 @@ def replyto_thread(thread_id):
     id = db.Thread.reply(thread_id, {
         "content": content,
         "user": session["id"],
-        "datetime": datetime.datetime.utcnow()
+        "created": datetime.datetime.utcnow()
     })
     return str(id), httplib.CREATED

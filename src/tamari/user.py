@@ -18,6 +18,7 @@ def login():
     info, id = db.User.login(username, pwhash(password))
     if id:
         session['id'] = str(id)
+        session['permissions'] = ()
         return json.dumps(info), httplib.ACCEPTED
     else:
         return str(id), httplib.BAD_REQUEST
@@ -51,6 +52,7 @@ def register():
         return "", httplib.CONFLICT
 
     session['id'] = str(id)
+    session['permissions'] = ()
     return str(id), httplib.CREATED
 
 

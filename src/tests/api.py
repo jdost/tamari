@@ -78,7 +78,7 @@ class APITest(TestBase):
         def get_thread_dt(thread_id):  # short helper function
             response = self.app.get('/thread/' + thread_id)
             self.assertHasStatus(response, httplib.OK)
-            return json.loads(response.data)["datetime"]
+            return json.loads(response.data)["created"]
         # create the user & thread
         self.create_user()
         response = self.app.post('/thread', data=self.thread)

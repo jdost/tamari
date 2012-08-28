@@ -32,7 +32,21 @@ def clean_dict(src, keys):
 
 def check_permissions(src, user):
     if str(src["user"]) != user["id"]:
-        return False  # Check non-owner permissions, i.e. is an admin
+        check = src
+        if "thread" in check:  # means it is a post (?)
+            check = database.threads.find_one({"_id": check["thread"]})
+        if "forum" in check:  # means it is a thread
+            check = database.forums.find_one({"_id": check["forum"]})
+        if str(check["_id"]) in user["permissions"]:  # check if forum admin
+            return True
+
+        while "parent" in check:  # check if admin of any parent forum
+            if str(check["parent"] in user["permissions"]):
+                return True
+            check = database.forums.find_one({"_id": check["parent"]})
+
+        return 0 in user["permissions"] or 1 in user["permissions"]
+                # root or admin permissions
     return True
 
 
@@ -44,9 +58,10 @@ class Thread:
     much larger table of posts which all belong to a thread
     '''
     threads = database.threads
-    thread_keys = ["title", "user", "head", "datetime", "_id"]
+    thread_keys = ["title", "user", "head", "created", "_id", "editted",
+            "forum"]
     posts = database.posts
-    post_keys = ["content", "user", "thread", "datetime", "_id"]
+    post_keys = ["content", "user", "thread", "created", "_id", "editted"]
 
     @classmethod
     def create(cls, info=None):
@@ -97,7 +112,7 @@ class Thread:
         '''
         if not id:
             threads = cls.threads.find(skip=start, limit=limit,
-                    sort=[("datetime", mongo.DESCENDING)])
+                    sort=[("created", mongo.DESCENDING)])
             return [cls.__short(thread) for thread in threads]
         else:
             id = ObjectId(id)
@@ -105,7 +120,7 @@ class Thread:
             if not thread:
                 raise db_errors.IncorrectIdError()
             posts = cls.posts.find({"thread": id}, skip=start, limit=limit,
-                    sort=[("datetime", mongo.ASCENDING)])
+                    sort=[("created", mongo.ASCENDING)])
             return cls.__full(thread, posts)
 
     @classmethod
@@ -161,7 +176,7 @@ class Thread:
         return {
             "id": str(thread["_id"]),
             "title": thread["title"],
-            "datetime": thread["datetime"],
+            "created": thread["created"],
             "user": str(thread["user"])
         }
 
@@ -173,7 +188,8 @@ class Thread:
             "id": str(thread["_id"]),
             "title": thread["title"],
             "user": str(thread["user"]),
-            "datetime": thread["datetime"],
+            "created": thread["created"],
+            "editted": thread.get("editted", None),
             "posts": [cls.__post(post) for post in posts]
         }
 
@@ -184,7 +200,8 @@ class Thread:
         return {
             "id": str(post["_id"]),
             "content": post["content"],
-            "datetime": post["datetime"],
+            "created": post["created"],
+            "editted": post.get("editted", None),
             "user": str(post["user"])
         }
 
