@@ -31,11 +31,13 @@ JSON_KWARGS = {
 
 
 @app.route('/thread', methods=['GET'])
-def get_threads():
-    ''' get_threads -> GET /thread/
-    gets a list of the threads
+@app.route('/forum/<forum_id>/thread', methods=['GET'])
+def get_threads(forum_id=None):
+    ''' get_threads -> GET /thread
+        get_threads -> GET /forum/<forum_id>/thread
+    gets a list of the threads either from the root or a specific forum
     '''
-    return json.dumps(db.Thread.get(), **JSON_KWARGS)
+    return json.dumps(db.Thread.get(forum=forum_id), **JSON_KWARGS)
 
 
 @app.route('/thread/<thread_id>', methods=['GET'])
@@ -43,12 +45,14 @@ def get_thread(thread_id):
     ''' get_thread -> GET /thread/<thread_id>
     get the full thread based on the specified thread_id
     '''
-    return json.dumps(db.Thread.get(thread_id), **JSON_KWARGS)
+    return json.dumps(db.Thread.get(thread_id=thread_id), **JSON_KWARGS)
 
 
+@app.route('/forum/<forum_id>/thread', methods=['POST'])
 @app.route('/thread', methods=['POST'])
-def create_thread():
-    ''' create_thread -> POST /thread/
+def create_thread(forum_id=None):
+    ''' create_thread -> POST /thread
+        create_thread -> POST /forum/<forum_id>/thread
     Creates a thread for the forum
     '''
     title = request.form['title']
@@ -57,7 +61,8 @@ def create_thread():
         "title": title,
         "content": content,
         "user": session['id'],
-        "created": datetime.datetime.utcnow()
+        "created": datetime.datetime.utcnow(),
+        "forum": forum_id
     })
     return str(id), httplib.CREATED
 

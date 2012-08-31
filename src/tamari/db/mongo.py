@@ -12,14 +12,14 @@ db_info.update(settings['db'])  # This overrides the defaults with the ones in
         # settings
 connection = mongo.Connection(db_info['host'], db_info['port'])
 if settings["debug"]:
-    database = connection.test_database
+    database = connection.test
 else:
-    database = connection.prod_database
+    database = connection.prod
 
 
 def cleanup():
     if settings["debug"]:
-        connection.drop_database("test_database")
+        connection.drop_database("test")
 
 
 def clean_dict(src, keys):
@@ -31,23 +31,22 @@ def clean_dict(src, keys):
 
 
 def check_permissions(src, user):
-    if str(src["user"]) != user["id"]:
-        check = src
-        if "thread" in check:  # means it is a post (?)
-            check = database.threads.find_one({"_id": check["thread"]})
-        if "forum" in check:  # means it is a thread
-            check = database.forums.find_one({"_id": check["forum"]})
-        if str(check["_id"]) in user["permissions"]:  # check if forum admin
+    if "user" in src and str(src["user"]) == user["id"]:
+        return True
+
+    if "thread" in src:
+        src = database.threads.find_one({"_id": src["thread"]})
+    if "forum" in src:
+        src = database.forums.find_one({"_id": src["forum"]})
+
+    if src and "_id" in src and str(src["_id"]) in user["permissions"]:
+        return True
+    while src and "parent" in src:
+        if str(src["parent"]) in user["permissions"]:
             return True
-
-        while "parent" in check:  # check if admin of any parent forum
-            if str(check["parent"] in user["permissions"]):
-                return True
-            check = database.forums.find_one({"_id": check["parent"]})
-
-        return 0 in user["permissions"] or 1 in user["permissions"]
-                # root or admin permissions
-    return True
+        src = database.forums.find_one({"_id": src["parent"]})
+    return 0 in user["permissions"] or 1 in user["permissions"]
+            # root or admin permissions
 
 
 class Thread:
@@ -75,6 +74,8 @@ class Thread:
             raise db_errors.MissingInfoError('No thread information provided')
 
         info['user'] = ObjectId(info['user'])  # Convert id into ObjectId
+        if info['forum']:
+            info['forum'] = ObjectId(info['forum'])
 
         post_id = cls.posts.insert({"temp": ""})  # placeholder
         info['head'] = post_id
@@ -103,23 +104,24 @@ class Thread:
         return id
 
     @classmethod
-    def get(cls, id=None, limit=0, start=0):
+    def get(cls, thread_id=None, forum=None, limit=0, start=0):
         ''' Thread::get
         Retrieval function for threads.  The purpose is to return all of the
         threads based on given conditions.  If the id argument is set, it will
         return more granular information on that single thread, if it is not,
         a list of threads with a simple summary will be returned instead.
         '''
-        if not id:
-            threads = cls.threads.find(skip=start, limit=limit,
-                    sort=[("created", mongo.DESCENDING)])
+        if not thread_id:
+            forum = ObjectId(forum) if forum else forum
+            threads = cls.threads.find({"forum": forum}, skip=start,
+                    limit=limit, sort=[("created", mongo.DESCENDING)])
             return [cls.__short(thread) for thread in threads]
         else:
-            id = ObjectId(id)
-            thread = cls.threads.find_one({"_id": id})
+            thread_id = ObjectId(thread_id)
+            thread = cls.threads.find_one({"_id": thread_id})
             if not thread:
                 raise db_errors.IncorrectIdError()
-            posts = cls.posts.find({"thread": id}, skip=start, limit=limit,
+            posts = cls.posts.find({"thread": thread_id}, skip=start, limit=limit,
                     sort=[("created", mongo.ASCENDING)])
             return cls.__full(thread, posts)
 
@@ -285,6 +287,51 @@ class User:
         '''
         return {
             'username': user['username']
+        }
+
+
+class Forum:
+    ''' Forum
+    The wrapper class for operations on forums in the database backend, this
+    includes things like creating a forum, getting the list of forums at
+    different levels of the hierarchy
+    '''
+    db = database.forums
+
+    @classmethod
+    def create(cls, info=None, user=None):
+        ''' Forum::create
+        Single argument function, this argument should be a dictionary of all
+        of the information for creating this forum.  Should really just have
+        a name and a parent, if it's parent is root, don't add it
+        '''
+        if not info:
+            raise db_errors.MissingInfoError('No forum information provided')
+
+        if 'parent' in info:
+            info['parent'] = ObjectId(info['parent'])
+        else:
+            info['parent'] = None
+
+        if not check_permissions(info, user):
+            raise db_errors.BadPermissionsError()
+
+        return cls.db.insert(info)
+
+    @classmethod
+    def get(cls, level=None):
+        ''' Forum::get
+        Returns the forum information for the specified forum level, the level
+        should be the ID of the forum, if level is not specified, it will
+        return a list of the root subforums
+        '''
+        return [cls.__forum(forum) for forum in cls.db.find({'parent': level})]
+
+    @classmethod
+    def __forum(cls, forum):
+        return {
+            "id": str(forum['_id']),
+            "name": forum['name']
         }
 
 

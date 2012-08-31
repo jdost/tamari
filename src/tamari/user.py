@@ -46,7 +46,8 @@ def register():
     try:
         id = db.User.create({
             'username': username,
-            'password': pwhash(password)
+            'password': pwhash(password),
+            'permissions': [0] if app.config['TESTING'] else []
         })
     except db_errors.ExistingUsernameError:
         return "", httplib.CONFLICT

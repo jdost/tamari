@@ -50,6 +50,6 @@ app.db = db
 def get_version():
     return VERSION
 
-import tamari.user, tamari.thread, tamari.api
+import tamari.user, tamari.thread, tamari.api, tamari.forum
 if __name__ == '__main__':
     app.run()

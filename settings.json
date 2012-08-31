@@ -3,7 +3,7 @@
     "type": "mongo"
   },
   "session_defaults": {
-    "date_format": "isoformat"
+    "date_format": "iso"
   },
   "debug": true,
   "secret_key": "herpaderpityderp"

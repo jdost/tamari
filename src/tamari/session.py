@@ -7,7 +7,7 @@ SESSION_KEY = settings.get('session_key', 'session_key')
 class Session(dict, SessionMixin):
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
-        self["permissions"] = ()
+        self["permissions"] = []
         self.update(settings.get('session_defaults', {}))
 
     pass
