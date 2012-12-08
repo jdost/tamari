@@ -1,16 +1,19 @@
-from tamari import app
+from . import app
+from .decorators import datatype
 from flask import request, session
 import httplib
-import json
-
-
 # This is just a set of keys that can't be set via settings
 prohibited_settings = ["id", "_id"]
 
+route = "/settings"
+app.endpoint(name='settings', route=route)
 
-@app.route('/settings', methods=['POST'])
+
+@app.put(route)
+@datatype
 def set_settings():
     ''' set_settings -> POST /settings
+        POST: [key]=[value]
     Sets session settings, things like default packet parts, page sizes, etc,
     mostly acts as a client controlled way of establishing default params for
     various API calls without needing to explicitly set them for ever call.
@@ -18,10 +21,11 @@ def set_settings():
     for key in request.form:
         if key not in prohibited_settings:
             session[key] = request.form[key]
-    return "", httplib.OK
+    return httplib.ACCEPTED
 
 
-@app.route('/settings', methods=['GET'])
+@app.get(route)
+@datatype
 def view_settings():
     ''' view_settings -> GET /settings
     Gets the current settings, really just a reader method for a client to be
@@ -32,4 +36,10 @@ def view_settings():
         if key not in prohibited_settings:
             settings[key] = session[key]
 
-    return json.dumps(settings)
+    return settings
+
+
+@app.get('/')
+@datatype
+def index():
+    return app.endpoints, httplib.OK

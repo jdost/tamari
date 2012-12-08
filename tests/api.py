@@ -1,4 +1,4 @@
-from tests.base import TestBase
+from base import TestBase
 import httplib
 import json
 
@@ -17,36 +17,30 @@ class APITest(TestBase):
         "content": "settings thread stuff"
     }
 
-    def create_user(self, user=None):
-        ''' APITest::create_user
-        Utility method to ease the creation of a new user on the server, will
-        default to creating the class user if one is not defined
-        '''
-        if not user:
-            user = self.user
-
-        response = self.app.post('/user', data=user)
-        self.assertHasStatus(response, httplib.CREATED)
-        return response
-
     def get_settings(self):
         ''' APITest::get_settings
         Utility method to retrieve the currently visible settings from the
         current session
         '''
-        response = self.app.get('/settings')
+        response = self.app.get(
+            self.endpoints['settings']['url'], headers=self.json_header)
         self.assertHasStatus(response, httplib.OK)
         return json.loads(response.data)
+
+    def set_settings(self, settings):
+        response = self.app.put(
+            self.endpoints['settings']['url'], data=settings,
+            headers=self.json_header)
+        self.assertHasStatus(response, httplib.ACCEPTED)
+        return response
 
     def test_make_settings(self):
         ''' APITest::test_make_settings
         Tests that a setting can be made and that it gets saved, this is the
         basic operation test for using the session settings
         '''
-        self.create_user()
-        response = self.app.post('/settings', data={ "foo": "bar" })
-        self.assertHasStatus(response, httplib.OK)
-
+        self.register(self.user)
+        self.set_settings({"foo": "bar"})
         settings = self.get_settings()
         self.assertEqual(settings["foo"], "bar")
 
@@ -55,17 +49,15 @@ class APITest(TestBase):
         Tests that you cannot modify/retrieve specific settings that should
         remain hidden from clients (internal session information)
         '''
-        self.create_user()
-        response = self.app.post('/settings', data={ "id": 1 })
-        self.assertHasStatus(response, httplib.OK)  # should still succeed
+        user = json.loads(self.register(self.user).data)
+        self.set_settings({"id": 1})
 
-        response = self.app.get('/user')  # if the id was changed, diff user
+        response = self.app.get(user["url"], headers=self.json_header)
         self.assertHasStatus(response, httplib.OK)
         response_data = json.loads(response.data)
         self.assertEqual(self.user["username"], response_data["username"])
 
-        response = self.app.post('/settings', data={ "_id": 1, "foo": "bar" })
-        self.assertHasStatus(response, httplib.OK)
+        self.set_settings({"_id": 1, "foo": "bar"})
         settings = self.get_settings()
         self.assertEqual(settings["foo"], "bar")
 
@@ -74,29 +66,24 @@ class APITest(TestBase):
         Tests that the date_format setting is properly working, this means
         testing 'epoch', 'iso', and the strftime strings
         '''
-        import datetime, time
+        import datetime
+        import time
+
         def get_thread_dt(thread_id):  # short helper function
-            response = self.app.get('/thread/' + thread_id)
-            self.assertHasStatus(response, httplib.OK)
-            return json.loads(response.data)["created"]
+            return self.get_thread(thread)["created"]
         # create the user & thread
-        self.create_user()
-        response = self.app.post('/thread', data=self.thread)
-        self.assertHasStatus(response, httplib.CREATED)
-        thread = response.data
+        self.register(self.user)
+        thread = self.create_thread(thread=self.thread)
         # test the ISO format, parses out a datetime object from this
-        response = self.app.post('/settings', data={ "date_format": "iso" })
-        self.assertHasStatus(response, httplib.OK)
+        self.set_settings({"date_format": "iso"})
         datetime_str = get_thread_dt(thread)
-        datetime_obj = datetime.datetime.strptime(datetime_str,
-                "%Y-%m-%dT%H:%M:%S.%f")
+        datetime_obj = datetime.datetime.strptime(
+            datetime_str, "%Y-%m-%dT%H:%M:%S.%f")
         # test the 'epoch' format, checks that it matchs the ISO dt object
-        response = self.app.post('/settings', data={ "date_format": "epoch" })
-        self.assertHasStatus(response, httplib.OK)
+        self.set_settings({"date_format": "epoch"})
         datetime_int = get_thread_dt(thread)
         self.assertEqual(datetime_int, time.mktime(datetime_obj.timetuple()))
         # test a custom format, checks against the output of the ISO dt object
-        response = self.app.post('/settings', data={ "date_format": "%d%%%m" })
-        self.assertHasStatus(response, httplib.OK)
+        self.set_settings({"date_format": "%d%%%m"})
         datetime_str = get_thread_dt(thread)
         self.assertEqual(datetime_str, datetime_obj.strftime("%d%%%m"))

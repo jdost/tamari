@@ -1,4 +1,4 @@
-from tests.base import TestBase
+from base import TestBase
 import json
 import httplib
 
@@ -6,9 +6,16 @@ import httplib
 class ForumTest(TestBase):
     ''' ForumTest
     '''
+    root_user = {
+        "username": "ForumRoot",
+        "password": "What is the meaning of life"
+    }
     user = {
-        "username": "forumtester",
-        "password": "heyletstest"
+        "username": "Tester",
+        "password": "I like to eat grass"
+    }
+    forum = {
+        "name": "Test Subforum"
     }
 
     def setUp(self):
@@ -17,24 +24,32 @@ class ForumTest(TestBase):
         actions
         '''
         TestBase.setUp(self)
-        response = self.app.post('/user', data=self.user)
+        self.register(self.root_user)
+        self.logout()
+        self.register(self.user)
 
-    def get_forums(self, forum_id=None):
-        ''' ForumTest::get_forums
-        Utility function to ease getting the list of forums
+    def get_forums(self, forum=None):
         '''
-        if forum_id:
-            url = '/forum/' + forum_id
-        else:
-            url = '/'
-        response = self.app.get(url)
+        '''
+        forum = forum if forum else self.get_forum()
+        response = self.app.get(forum['forums'], headers=self.json_header)
         self.assertHasStatus(response, httplib.OK)
+        return json.loads(response.data)
+
+    def create_forum(self, parent=None, forum=None):
+        '''
+        '''
+        parent = parent if parent else self.get_forum()
+        forum = forum if forum else self.forum
+        response = self.app.post(
+            parent['forums'], data=forum, headers=self.json_header)
+        self.assertHasStatus(response, httplib.CREATED)
         return json.loads(response.data)
 
     def elevate_user(self):
         with self.app as app:
             with app.session_transaction() as session:
-                session['permissions'] = [0]
+                session['rights'].append(0)
 
     def test_empty_list(self):
         ''' ForumTest::test_empty_list
@@ -52,9 +67,10 @@ class ForumTest(TestBase):
             "name": "test forum"
         }
         self.elevate_user()
-        response = self.app.post('/forum', data=forum_data)
-        self.assertHasStatus(response, httplib.CREATED)
-        forums = self.get_forums()
+
+        root = self.get_forum()
+        self.create_forum(root, forum_data)
+        forums = self.get_forums(root)
         self.assertEqual(1, len(forums))
         self.assertEqual(forums[0]["name"], forum_data["name"])
 
@@ -65,9 +81,12 @@ class ForumTest(TestBase):
         forum_data = {
             "name": "bad forum"
         }
-        response = self.app.post('/forum', data=forum_data)
+
+        root = self.get_forum()
+        response = self.app.post(
+            root['forums'], data=forum_data, headers=self.json_header)
         self.assertHasStatus(response, httplib.UNAUTHORIZED)
-        forums = self.get_forums()
+        forums = self.get_forums(root)
         self.assertEmpty(forums)
 
     def test_create_forum_thread(self):
@@ -82,27 +101,21 @@ class ForumTest(TestBase):
             "content": "stuff should get posted"
         }
         self.elevate_user()
-        response = self.app.post('/forum', data=forum_data)
-        self.assertHasStatus(response, httplib.CREATED)
-        forum_id = response.data
 
-        forums = self.get_forums()
+        root = self.get_forum()
+        forum = self.create_forum(root, forum_data)
+
+        forums = self.get_forums(root)
         self.assertEqual(1, len(forums))
-        self.assertEqual(forums[0]["id"], forum_id)
+        self.assertEqual(forums[0]["url"], forum["url"])
 
-        forums = self.get_forums(forum_id)
+        forums = self.get_forums(forum)
         self.assertEmpty(forums)
-        response = self.app.get('/forum/' + forum_id + '/thread')
-        self.assertHasStatus(response, httplib.OK)
-        threads = json.loads(response.data)
+        threads = self.get_threads(forum)
         self.assertEmpty(threads)
 
-        response = self.app.post('/forum/' + forum_id + '/thread',
-                data=thread_data)
-        self.assertHasStatus(response, httplib.CREATED)
-        response = self.app.get('/forum/' + forum_id + '/thread')
-        self.assertHasStatus(response, httplib.OK)
-        threads = json.loads(response.data)
+        self.create_thread(forum=forum, thread=thread_data)
+        threads = self.get_threads(forum)
 
         self.assertEqual(1, len(threads))
         self.assertEqual(threads[0]["title"], thread_data["title"])

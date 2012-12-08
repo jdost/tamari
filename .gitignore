@@ -1,4 +1,2 @@
 *.pyc
-tamari.conf
-sample/*
-notes/*
+nginx.conf
