@@ -2,7 +2,7 @@ LINTER=$(shell if which flake8 > /dev/null; \
 					then which flake8; \
 					else which true; fi)
 unittest:
-	nosetests ./tests/*.py
+	nosetests --with-color ./tests/*.py
 
 lint:
 	${LINTER} ./tamari/*.py
