@@ -1,3 +1,9 @@
+''' forum.py
+Collection of routes and functions dealing with the forum grouping of threads,
+forums hold their own subforums and threads, this includes routes and functions
+to handle the creation of subforums and threads based on the forum that will
+control them.  Creates and stores an endpoint for the root forum on creation.
+'''
 import httplib
 import datetime
 from . import app

@@ -1,3 +1,10 @@
+''' thread.py
+Contains routes and functionality for working with threads, threads are the
+conversations placed under different forums.  They are compromised of a series
+of posts by different users in the conversation.  Threads can be created,
+modified, and retrieved (creation occurs in ./forums.py).  Then posts can be
+created (in reply to a thread), modified, and retrieved.
+'''
 import httplib
 import datetime
 from . import app

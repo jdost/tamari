@@ -1,3 +1,8 @@
+''' user.py
+Collection of routes and functions dealing with user management, including
+registering new users, modifying existing users, retrieving other users, and
+logging in and out as a user.
+'''
 from .database import errors, User
 from .decorators import datatype
 import httplib

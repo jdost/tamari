@@ -1,3 +1,8 @@
+''' api.py
+Contains routes and actions specific to the REST API, things that really don't
+fall into any larger category are mostly what go into here.  This includes the
+discovery route, the settings modification, and the version route.
+'''
 from . import app
 from .decorators import datatype
 from flask import request, session

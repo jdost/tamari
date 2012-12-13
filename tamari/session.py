@@ -1,3 +1,8 @@
+''' session.py
+Collection of functions that deal with the session handling for the Flask app,
+sessions exist in the mongo db and are created with a set of defaults dictated
+in the settings file.
+'''
 from flask.sessions import SessionInterface, SessionMixin
 from . import settings
 from .database import Session as Sessions
