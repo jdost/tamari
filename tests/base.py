@@ -87,7 +87,7 @@ class TestBase(unittest.TestCase):
         if not forum:
             forum = self.endpoints['root']
         forum = forum if 'threads' in forum else self.get_forum(forum)
-        thread = thread if thread else self.thread
+        thread = thread if thread else self.default_thread
         response = self.app.post(
             forum['threads'], data=thread, headers=self.json_header)
         self.assertHasStatus(response, httplib.CREATED)

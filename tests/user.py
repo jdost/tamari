@@ -93,4 +93,4 @@ class UserTest(TestBase):
         response = self.app.delete(user['url'])
         self.assertHasStatus(response, httplib.ACCEPTED)
         response = self.app.get(user['url'])
-        self.assertHasStatus(response, httplib.BAD_REQUEST)
+        self.assertHasStatus(response, httplib.NOT_FOUND)

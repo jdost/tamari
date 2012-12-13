@@ -4,7 +4,15 @@ the names should be pretty self explanatory
 '''
 
 
-class MissingInfoError(Exception):
+class DatabaseError(Exception):
+    def __init__(self, *msg):
+        self.message = msg[0].format(*msg[1:]) if len(msg) > 1 else msg[0]
+
+    def __str__(self):
+        return self.message
+
+
+class MissingInfoError(DatabaseError):
     ''' MissingInfoError
     Raised by a db layer when information to be inserted into the DB is missing
     and is required.
@@ -12,7 +20,7 @@ class MissingInfoError(Exception):
     pass
 
 
-class DBNotDefinedError(Exception):
+class DBNotDefinedError(DatabaseError):
     ''' DBNotDefinedError
     Raised by the db initialization when there is information for the
     definition of the database that is missing
@@ -20,7 +28,7 @@ class DBNotDefinedError(Exception):
     pass
 
 
-class ExistingUsernameError(Exception):
+class ExistingUsernameError(DatabaseError):
     ''' ExistingUsernameError
     Raised by the db layer when trying to create a User with an username that
     already exists, which would cause an overlap
@@ -28,7 +36,7 @@ class ExistingUsernameError(Exception):
     pass
 
 
-class BadPermissionsError(Exception):
+class BadPermissionsError(DatabaseError):
     ''' BadPermissionsError
     Raised by the db layer when a user lacks permission to perform a requested
     action
@@ -36,7 +44,7 @@ class BadPermissionsError(Exception):
     pass
 
 
-class IncorrectIdError(Exception):
+class NoEntryError(DatabaseError):
     ''' IncorrectIdError
     Raised by the db layer when a request using an ID returns nothing, mostly
     to signify that the ID provided is incorrect

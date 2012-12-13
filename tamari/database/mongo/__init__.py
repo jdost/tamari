@@ -18,6 +18,9 @@ database = connection["tamari_dev" if settings.DEBUG else "tamari"]
 
 
 def cleanup():
+    ''' cleanup
+    Used by the unittest system to cleanup the database between tests
+    '''
     if settings.DEBUG:
         connection.drop_database("tamari_dev")
 
@@ -34,26 +37,12 @@ def __getattr__(key):
     return __dict__[key] if key in __dict__ else database[key]
 
 
-def check_permissions(src, user):
-    if "user" in src and str(src["user"]) == user["id"]:
-        return True
-
-    if "thread" in src:
-        src = database.threads.find_one({"_id": src["thread"]})
-    if "forum" in src:
-        src = database.forums.find_one({"_id": src["forum"]})
-
-    if src and "_id" in src and str(src["_id"]) in user["permissions"]:
-        return True
-    while src and "parent" in src:
-        if str(src["parent"]) in user["permissions"]:
-            return True
-        src = database.forums.find_one({"_id": src["parent"]})
-    return 0 in user["permissions"] or 1 in user["permissions"]
-            # root or admin permissions
-
-
 def ObjectId(src):
+    ''' ObjectId
+    Wraps the conversion of a provided string into a BSON ObjectId, handles
+    if the conversion fails and throws an error, bubbling it up to a
+    NoEntryError.
+    '''
     try:
         return ObjectId_(src)
     except InvalidId:
@@ -63,5 +52,13 @@ def ObjectId(src):
 
 
 def convert_id(packet):
+    ''' convert_id
+    Helper function that converts a packet's _id property used in Mongo into
+    an identifying string for the application.
+    '''
     packet["id"] = str(packet["_id"])
     del packet["_id"]
+
+    for (key, value) in packet.items():
+        if isinstance(value, ObjectId_):
+            packet[key] = str(value)

@@ -186,7 +186,7 @@ def datatype(template=None):
         return decorator
 
 
-def require_permissions(forum=False, thread=False, post=False):
+def require_permissions(func=None, forum=False, thread=False, post=False):
     ''' require_permissions decorator:
     This decorator function is used to flag routes as endpoints that require
     the user to be logged in.  This is to easily take care of handling all of
@@ -200,34 +200,7 @@ def require_permissions(forum=False, thread=False, post=False):
             return { "foo": "bar" }
     '''
     #from . import logger
-    def check_forum(forum_id):
-        ''' check_forum
-        Checks that the current user has permission to perform this action on
-        a forum.
-        '''
-        from .database import Forum
-        return 'rights' in session and len(session['rights']) and \
-            (forum_id not in session['rights'] or 0 in session['rights'] or
-            (settings.INHERIT_ADMINS and
-             Forum.find_parent(forum_id, session['rights'])))
-
-    def check_thread(thread_id):
-        ''' check_thread
-        Checks that the current user has permission to perform this action on
-        a thread.
-        '''
-        from .database import Thread
-        thread = Thread.get(thread_id=thread_id)
-        if thread['user'] == session['id']:
-            return True
-        return check_forum(thread['forum'])
-
-    def check_post(post_id):
-        ''' check_post
-        Checks that the current user has permission to perform this action on
-        a post.
-        '''
-        return True
+    from .database import Permission as Perms
 
     def decorator(func):
         @wraps(func)
@@ -235,21 +208,19 @@ def require_permissions(forum=False, thread=False, post=False):
             if 'id' not in session:
                 #logger.warning(
                     #"Attempting to access without being logged in.")
-                print "1"
                 abort(httplib.UNAUTHORIZED)
-            elif (forum and not check_forum(kwargs['forum_id'])) or \
-                    (thread and not check_thread(kwargs['thread_id'])) or \
-                    (post and not check_post(kwargs['post_id'])):
+            elif (forum and not Perms.check_forum(kwargs['forum_id'])) or \
+                 (thread and not Perms.check_thread(kwargs['thread_id'])) or \
+                 (post and not Perms.check_post(kwargs['post_id'])):
                 #logger.warning(
                     #"Attempting to access without sufficient " +
                     #"permissions.  Has: {} Needs: {}",
                     #session['rights'], forum_id)
-                print "2"
                 abort(httplib.UNAUTHORIZED)
             return func(*args, **kwargs)
         return decorated_function
 
-    return decorator
+    return decorator if not func else decorator(func)
 
 
 def paginate(func):
@@ -258,17 +229,23 @@ def paginate(func):
     models.  It pulls the page count and page size from either the request
     arguments or the session and passes them into the view function.  It then
     adds the 'Link' header to the response.
+
+    Assumes the wrapped function takes kwargs of 'page' and 'per_page' to
+    handle the limiting and offsetting of the query.
     '''
     @wraps(func)
     def decorated_function(*args, **kwargs):
-        page = request.args.get('page', 0)
+        page = int(request.args.get('page', 0))
         per_page = request.args.get('per_page', session.get('page_size', 25))
 
         kwargs['page'] = page
-        kwargs['per_page'] = per_page
+        kwargs['per_page'] = int(per_page)
 
         links = []
         vargs = request.view_args.copy()
+        if 'per_page' in request.args:
+            vargs['per_page'] = per_page
+
         if page > 0:
             vargs['page'] = page - 1
             links.append(

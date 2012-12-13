@@ -29,7 +29,9 @@ class ForumTest(TestBase):
         self.register(self.user)
 
     def get_forums(self, forum=None):
-        '''
+        ''' ForumTest::get_forums
+        Helper method that retrieves the list of subforums for a provided
+        forum.  If no forum is specified, will use the root forum.
         '''
         forum = forum if forum else self.get_forum()
         response = self.app.get(forum['forums'], headers=self.json_header)
@@ -37,7 +39,11 @@ class ForumTest(TestBase):
         return json.loads(response.data)
 
     def create_forum(self, parent=None, forum=None):
-        '''
+        ''' ForumTest::create_forum
+        Helper method that creates a subforum with the provided information.
+        The forum created will be a child of `parent` and will be created with
+        the information providided in `forum`.  If parent is not set, will use
+        the root forum, if forum is not set, will use self.forum.
         '''
         parent = parent if parent else self.get_forum()
         forum = forum if forum else self.forum
@@ -47,12 +53,15 @@ class ForumTest(TestBase):
         return json.loads(response.data)
 
     def elevate_user(self):
-        with self.app as app:
-            with app.session_transaction() as session:
+        ''' ForumTest::elevate_user
+        Helper method that elevates the current session's permissions up to
+        root level.
+        '''
+        with self.app.session_transaction() as session:
                 session['rights'].append(0)
 
     def test_empty_list(self):
-        ''' ForumTest::test_empty_list
+        ''' Root forum has no subforums initially
         Simple test to see if the initial forum list request for the root
         returns an empty list.
         '''
@@ -60,7 +69,7 @@ class ForumTest(TestBase):
         self.assertEmpty(forums)
 
     def test_good_create_forum(self):
-        ''' ForumTest::test_good_create_forum
+        ''' Creates a subforum
         Creates a forum, makes sure it gets created and shows up in the list
         '''
         forum_data = {
@@ -75,7 +84,7 @@ class ForumTest(TestBase):
         self.assertEqual(forums[0]["name"], forum_data["name"])
 
     def test_bad_create_forum(self):
-        ''' ForumTest::test_bad_create_forum
+        ''' Create a forum without being logged in
         Tries to create a forum without the permissions, should fail
         '''
         forum_data = {
@@ -90,7 +99,7 @@ class ForumTest(TestBase):
         self.assertEmpty(forums)
 
     def test_create_forum_thread(self):
-        ''' ForumTest::test_create_forum_thread
+        ''' Creates a thread in a new subforum
         Creates a forum and then makes a thread in that forum
         '''
         forum_data = {

@@ -28,6 +28,7 @@ def set_settings():
 @datatype
 def view_settings():
     ''' view_settings -> GET /settings
+
     Gets the current settings, really just a reader method for a client to be
     able to review the current values
     '''
@@ -42,4 +43,20 @@ def view_settings():
 @app.get('/')
 @datatype
 def index():
+    ''' index -> GET /
+
+    Discovery call, returns a list of the starting endpoints to allow for the
+    dynamic discovery of API consumers, no more hard coded URL paths in the
+    code!
+    '''
     return app.endpoints, httplib.OK
+
+
+@app.get('/version')
+@datatype
+def get_version():
+    ''' get_version -> GET /version
+
+    Returns the version of the app, useful for compatibility checks of APIs
+    '''
+    return app.__version__

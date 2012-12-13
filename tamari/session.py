@@ -1,21 +1,27 @@
 from flask.sessions import SessionInterface, SessionMixin
 from . import settings
-from .database import Session
+from .database import Session as Sessions
 
 SESSION_KEY = settings.SESSION_KEY
 
 
-class Sessions(dict, SessionMixin):
+class Session(dict, SessionMixin):
+    ''' Session
+    wrapper class for the created session, just makes sure the session is
+    initialized to a specific default (as specified in the settings)
+    '''
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
         self["permissions"] = []
         self.update(settings.SESSION_DEFAULTS)
 
-    pass
+    def clear(self, *args, **kwargs):
+        Sessions.remove(self['_id'])
+        return dict.clear(self, *args, **kwargs)
 
 
 class SessionHandler(SessionInterface):
-    ''' Sessions
+    ''' SessionHandler
     class implementing the SessionInterface for Flask to store the sessions in
     the database, this could always use plenty of work.
     '''
@@ -23,16 +29,16 @@ class SessionHandler(SessionInterface):
         pass
 
     def open_session(self, app, request):
-        ''' Sessions::open_session
+        ''' SessionHandler::open_session
         if no key is stored in the cookies, returns None, otherwise will return
         the data packet stored in the database using the key retrieved from the
         cookie.
         '''
         if SESSION_KEY not in request.cookies:
-            return Sessions()
+            return Session()
         session_id = request.cookies[SESSION_KEY]
-        session = Session.get(session_id)
-        return session if session else Sessions()
+        session = Sessions.get(session_id)
+        return session if session else Session()
 
     def save_session(self, app, session, response):
         ''' Sessions::save_session
@@ -40,5 +46,5 @@ class SessionHandler(SessionInterface):
         session packet or not (if the is an id in the packet), if it is new,
         the id will be stored as a cookie for future lookup
         '''
-        id = Session.save(session)
+        id = Sessions.save(session)
         response.set_cookie(SESSION_KEY, value=id)

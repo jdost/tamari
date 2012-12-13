@@ -28,7 +28,7 @@ class ThreadTest(TestBase):
         self.register(self.user)
 
     def test_get_empty_threads(self):
-        ''' ThreadTest::test_get_empty_threads
+        ''' Thread list for the root is initially empty
         Simple test to see that the thread set is empty by default, if this is
         failing, most of the other tests will probably fail and something is
         wrong in the test setup
@@ -39,7 +39,7 @@ class ThreadTest(TestBase):
         self.assertEmpty(threads)
 
     def test_create_thread(self):
-        ''' ThreadTest::test_create_thread
+        ''' Creating a thread
         Simple test to see that a thread can be created and retrieved, checks
         that the thread contains the proper data
         '''
@@ -63,7 +63,7 @@ class ThreadTest(TestBase):
             self.thread1['content'], "Incorrect content on the post.")
 
     def test_replyto_thread(self):
-        ''' ThreadTest::test_replyto_thread
+        ''' Replying to a thread
         Tests that another user can reply to a thread
         '''
         root = self.get_forum()
@@ -85,7 +85,7 @@ class ThreadTest(TestBase):
         self.assertEqual(len(thread["posts"]), 2)
 
     def test_good_edit_thread(self):
-        ''' ThreadTest::test_good_edit_thread
+        ''' Editting a thread
         Tests that editting a thread works correctly
         '''
         new_thread = {
@@ -104,7 +104,7 @@ class ThreadTest(TestBase):
         self.assertEqual(threads[0]["title"], new_thread["title"])
 
     def test_bad_edit_thread(self):
-        ''' ThreadTest::test_bad_edit_thread
+        ''' Editting a thread with the wrong user
         Tests that editting a thread with the wrong user fails
         '''
         new_thread = {
@@ -125,7 +125,7 @@ class ThreadTest(TestBase):
         self.assertHasStatus(response, httplib.UNAUTHORIZED)
 
     def test_good_edit_post(self):
-        ''' ThreadTest::test_good_edit_post
+        ''' Editting a post
         Tests that editting a post works correctly
         '''
         new_post = {
@@ -146,7 +146,46 @@ class ThreadTest(TestBase):
         self.assertEqual(post['content'], new_post['content'])
 
     def test_bad_edit_post(self):
-        ''' ThreadTest::test_bad_edit_post
+        ''' Editting a post with the wrong user
         Tests that editting a post with the wrong user fails
         '''
-        pass
+        new_post = {
+            "content": "This is the editted post content"
+        }
+        root = self.get_forum()
+
+        self.create_thread(root, self.thread1)
+        threads = self.get_threads(root)
+        thread = self.get_thread(threads[0])
+        post = thread["posts"][0]
+
+        self.logout()
+        self.register({
+            "username": "posteditor",
+            "password": "just a password"
+        })
+
+        response = self.app.put(
+            post["url"], data=new_post, headers=self.json_header)
+        self.assertHasStatus(response, httplib.UNAUTHORIZED)
+
+    def test_unauth_thread(self):
+        ''' Creates a thread without being logged in
+        Tests that trying to create a thread without being logged in fails
+        '''
+        self.logout()
+        forum = self.get_forum()
+        response = self.app.post(
+            forum['threads'], data=self.thread1, headers=self.json_header)
+        self.assertHasStatus(response, httplib.UNAUTHORIZED)
+
+    def test_unauth_post(self):
+        ''' Replies to a thread without being logged in
+        Tests that trying to reply to a post without being logged in fails
+        '''
+        thread = self.create_thread(thread=self.thread1)
+        self.logout()
+
+        response = self.app.post(
+            thread['url'], data=self.post1, headers=self.json_header)
+        self.assertHasStatus(response, httplib.UNAUTHORIZED)

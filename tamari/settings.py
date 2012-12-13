@@ -20,3 +20,4 @@ SERVING = {
     "host": "0.0.0.0",
     "port": 5055
 }
+INHERIT_ADMINS = True

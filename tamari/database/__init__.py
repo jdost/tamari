@@ -4,7 +4,7 @@ from .. import settings
 import errors
 
 DEFAULT = "mongo"
-__submodules__ = ['User', 'Thread', 'Forum', 'Session']
+__submodules__ = ['User', 'Thread', 'Forum', 'Session', 'Permission']
 __engines__ = ["mongo"]
 __dict__ = modules[__name__].__dict__
 engine = settings.DATABASE.get('type', DEFAULT)

@@ -28,6 +28,10 @@ class APITest(TestBase):
         return json.loads(response.data)
 
     def set_settings(self, settings):
+        ''' APITest::set_settings
+        Utility method to handle setting session settings for the current
+        session with the provided dictionary.
+        '''
         response = self.app.put(
             self.endpoints['settings']['url'], data=settings,
             headers=self.json_header)
@@ -35,7 +39,7 @@ class APITest(TestBase):
         return response
 
     def test_make_settings(self):
-        ''' APITest::test_make_settings
+        ''' Set session settings
         Tests that a setting can be made and that it gets saved, this is the
         basic operation test for using the session settings
         '''
@@ -45,7 +49,7 @@ class APITest(TestBase):
         self.assertEqual(settings["foo"], "bar")
 
     def test_prohibited_settings(self):
-        ''' APITest::test_prohibited_settings
+        ''' Set session settings that are reserved
         Tests that you cannot modify/retrieve specific settings that should
         remain hidden from clients (internal session information)
         '''
@@ -62,7 +66,7 @@ class APITest(TestBase):
         self.assertEqual(settings["foo"], "bar")
 
     def test_dateformat(self):
-        ''' APITest::test_dateformat
+        ''' Check dateformat settings
         Tests that the date_format setting is properly working, this means
         testing 'epoch', 'iso', and the strftime strings
         '''
