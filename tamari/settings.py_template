@@ -1,0 +1,27 @@
+''' settings.py
+This is where all of the instance specific settings are dictated and controlled,
+you will modify this to allow and set specific functionality and defaults.
+'''
+DEBUG = True  # change to False for a Prod environment, enables debug handlers
+SECRET_KEY = "ChangeMeIAmSecret"  # should be unique to your instance
+SESSION_KEY = "tamari"
+SESSION_DEFAULTS = {  # default values for each session initially
+    "date_format": "iso",  # format dates are returned in, see decorators.py
+    "page_size": 25  # default size for paged results
+}
+DATABASE = {  # settings for the database backed that is being used
+    "type": "mongo",  # type of database backend being used, currently only mongo
+    "info": {  # backend specific info for connecting
+        "host": "127.0.0.1",
+        "port": 27017
+    }
+}
+STATIC = {  # settings for serving static files
+    'folder': '../static',  # folder the static files will reside in
+    'path': '/s'  # subdirectory on the web routes for static files
+}
+SERVING = {  # settings the serve.py file uses to listen on
+    "host": "0.0.0.0",  # 0.0.0.0 is a broadcast listen, 127.0.0.1 is local
+    "port": 5055  # port listening on
+}
+INHERIT_ADMINS = True  # if admins on parent forums get rights on subforums
