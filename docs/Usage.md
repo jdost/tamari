@@ -1,32 +1,29 @@
 # Usage
 
-Tamari is a simple forum backend, but it does not come with a built in frontend (I
-am writing a sample however) which means that you can write your own customized
-frontend to interact with it (it also means that various frontends can all use the
-same backend).  This is just a simple usage tutorial for how to interact with the
-backend.
+Tamari is a forum backend with a packaged API consuming frontend.  The application
+is only meant to be consumed via the API, meaning that the functionality and control
+achieved through it will be uniform across media (as they all will have access to
+the same actions on the same data).  The interaction with the application will be
+done either anonymously as just a consumer of the information (not being logged in)
+or logged into the system, giving the ability to modify and add to the dataset.
 
-So first off, before you can really do anything, you need to create a user.  This
-is required as all modification operations (Creating, modifying, and deleting)
-require that the session performing the action have a user account attached to it.
-To create a user account, you will need to perform a POST operation on the url
-'/user/' with two HTTP parameters, "username" and "password".  This operation
-**should** succeed unless one of those parameters is missing or the username has
-already been taken.  Once the action is successful, the session is automatically
-logged in.  On subsequent visits where the session has expired, you can log back in
-by using the PUT operation on the same url with the same username and password and
-this will reattach the account to the session.
+The main function of the application (as a forum system) is creating and
+participating in thread discussions among the members.  The threads are placed under
+various forums (organized in a tree of subforums nested within each other) based on
+whatever criteria and organization used.  They are created with a title and an
+initial post (the head post of the thread) to start discussion.  Then other users
+may participate in the dialog via adding their own posts.
 
-Once you are logged in, you can now create a thread.  This is done by making a POST
-call to '/thread/' with two parameters, "title" for the title of the thread and
-"content" for the content of the first post on the thread.  After this call, the
-thread will be created.  You can get a list of the available threads by making a
-GET call to '/thread/'.  If you want to modify a thread that you have created, you
-will just make a PUT call to '/thread/:id' where ':id' is the thread's id (it will
-be available in the thread list).
+The system handles permissions on whether a user (in this context the client API
+consumer) has the rights to perform the action.  This means that when trying to
+edit a post, only specific people have permission to make that edit.
 
-If you want to dig into a thread, you just make a GET call to '/thread/:id' where
-':id' is the thread's ID.  This will return the thread information as well as all
-of the posts attached to this thread.  If you want to reply to the thread, just
-make a POST call to '/thread/:id' with a "content" parameter and the post will be
-created and added to the thread.
+The HTTP requests/responses with the appliction will utilize the HTTP spec, so when
+an action is attempted by a user without adequate permissions, an UNAUTHORIZED code
+will be returned along with some body text giving an error message.  Other codes are
+used throughout the application where appropriate (for exampe, CONFLICT is used when
+trying to create another user with the same username).
+
+Included in this is a folder '/libs' that has some basic libraries that wrap up the
+packaging and handling of the API calls.  They will probably be updated and modified
+as I learn to write a better standalone library.
