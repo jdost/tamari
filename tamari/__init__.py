@@ -30,6 +30,7 @@ app = TamariFlask(__name__)
 app.session_interface = session.SessionHandler()
 app.secret_key = settings.SECRET_KEY
 app.debug = settings.DEBUG
+app.jinja_env.line_statement_prefix = '%'
 app.__version__ = __version__
 # This just imports all of the webapps modules (defined in __all__)
 from importlib import import_module

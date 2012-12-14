@@ -46,7 +46,7 @@ def view_settings():
 
 
 @app.get('/')
-@datatype
+@datatype("index.html")
 def index():
     ''' index -> GET /
 
