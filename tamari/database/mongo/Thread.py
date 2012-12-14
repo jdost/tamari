@@ -164,7 +164,7 @@ def __short(thread):
         "url": url_for("get_thread", thread_id=str(thread['_id'])),
         "title": thread["title"],
         "created": thread["created"],
-        "user": str(thread["user"])
+        "user": url_for("get_user", user_id=str(thread["user"]))
     }
 
 
@@ -174,6 +174,7 @@ def __full(thread, posts):
     '''
     convert_id(thread)
     thread['url'] = url_for("get_thread", thread_id=thread['id'])
+    thread['user'] = url_for("get_user", user_id=thread['user'])
     thread['posts'] = [__post(post) for post in posts]
     return thread
 
@@ -184,4 +185,5 @@ def __post(post):
     '''
     convert_id(post)
     post['url'] = url_for("get_post", post_id=post['id'])
+    post['user'] = url_for("get_user", user_id=post['user'])
     return post

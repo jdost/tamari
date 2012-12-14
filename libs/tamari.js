@@ -32,7 +32,7 @@ window.tamari = (function (lib) {
     xhr.onreadystatechange = function () {
       if (xhr.readyState !== xhr.DONE) { return; }
       if (xhr.status >= 300) {  // Only error on status codes > 2xx
-        if (!args.statusCode[xhr.status]) {
+        if (!args.statusCode || !args.statusCode[xhr.status]) {
           if (args.error) {
             return args.error(xhr.responseText);
           }
@@ -82,16 +82,18 @@ window.tamari = (function (lib) {
   };
 
   var parseLinks = function (links) {
-    var regex = /<([a-zA-Z0-9_\-;&=/?]+)> rel=\"(\w+)\"/;
+    var regex = /<([a-zA-Z0-9_\-;&=/?]+)>; rel=\"(\w+)\"/;
     var output = {};
+    if (links.length === 0) { return output; }
 
     links = links.split(",");
     for (var i = 0, l = links.length; i < l; i++) {
       var res = links[i].match(regex);
+      if (!res) { continue; }
       output[res[2]] = res[1];
     }
 
-    return res;
+    return output;
   };
 
   var callbacks = {},
@@ -134,7 +136,7 @@ window.tamari = (function (lib) {
     cb = cb || {};
 
     ajax({
-      url: routes.register.url,
+      url: routes.user.url,
       data: credentials,
       type: 'POST',
       success: function (data) {
@@ -358,11 +360,11 @@ window.tamari = (function (lib) {
       url: thread,
       success: function (data) {
         if (typeof cb.success === 'function') { cb.success(data); }
-        trigger(events.THREAD_INFO, data);
+        lib.trigger(events.THREAD_INFO, data);
       },
       error: function (data) {
         if (typeof cb.error === 'function') { cb.error(data); }
-        trigger(events.THREAD_FAILURE, data);
+        lib.trigger(events.THREAD_FAILURE, data);
       }
     });
   };
@@ -388,11 +390,11 @@ window.tamari = (function (lib) {
       type: 'POST',
       success: function (data) {
         if (typeof cb.success === 'function') { cb.success(data); }
-        trigger(events.THREAD_CREATED, data);
+        lib.trigger(events.THREAD_CREATED, data);
       },
       error: function (data) {
         if (typeof cb.error === 'function') { cb.error(data); }
-        trigger(events.THREAD_FAILURE, data);
+        lib.trigger(events.THREAD_FAILURE, data);
       }
     });
   };
@@ -422,11 +424,11 @@ window.tamari = (function (lib) {
       url: post,
       success: function (data) {
         if (typeof cb.success === 'function') { cb.success(data); }
-        trigger(events.POST_INFO, data);
+        lib.trigger(events.POST_INFO, data);
       },
       error: function (data) {
         if (typeof cb.error === 'function') { cb.error(data); }
-        trigger(events.POST_FAILURE, data);
+        lib.trigger(events.POST_FAILURE, data);
       }
     });
   };
@@ -455,11 +457,11 @@ window.tamari = (function (lib) {
       type: 'PUT',
       success: function (data) {
         if (typeof cb.success === 'function') { cb.success(data); }
-        trigger(events.POST_MODIFIED, data);
+        lib.trigger(events.POST_MODIFIED, data);
       },
       error: function (data) {
         if (typeof cb.error === 'function') { cb.error(data); }
-        trigger(events.POST_FAILURE, data);
+        lib.trigger(events.POST_FAILURE, data);
       }
     });
   };
@@ -489,11 +491,11 @@ window.tamari = (function (lib) {
       type: 'POST',
       success: function (data) {
         if (typeof cb.success === 'function') { cb.success(data); }
-        trigger(events.POST_CREATED, data);
+        lib.trigger(events.POST_CREATED, data);
       },
       error: function (data) {
         if (typeof cb.error === 'function') { cb.error(data); }
-        trigger(events.POST_FAILURE, data);
+        lib.trigger(events.POST_FAILURE, data);
       }
     });
   };
@@ -517,11 +519,11 @@ window.tamari = (function (lib) {
       url: routes.settings.url,
       success: function (data) {
         if (typeof cb.success === 'function') { cb.success(data); }
-        trigger(events.SETTINGS_RETRIEVED, data);
+        lib.trigger(events.SETTINGS_RETRIEVED, data);
       },
       error: function (data) {
         if (typeof cb.error === 'function') { cb.error(data); }
-        trigger(events.SETTINGS_FAILURE, data);
+        lib.trigger(events.SETTINGS_FAILURE, data);
       }
     });
   };
@@ -545,11 +547,11 @@ window.tamari = (function (lib) {
       type: 'PUT',
       success: function (data) {
         if (typeof cb.success === 'function') { cb.success(data); }
-        trigger(events.SETTINGS_CHANGED, data);
+        lib.trigger(events.SETTINGS_CHANGED, data);
       },
       error: function (data) {
         if (typeof cb.error === 'function') { cb.error(data); }
-        trigger(events.SETTINGS_FAILURE, data);
+        lib.trigger(events.SETTINGS_FAILURE, data);
       }
     });
   };
@@ -566,7 +568,7 @@ window.tamari = (function (lib) {
       url: routes.version.url,
       success: function (data) {
         if (typeof cb.success === 'function') { cb.success(data); }
-        trigger(events.VERSION, data);
+        lib.trigger(events.VERSION, data);
       }
     });
   };
