@@ -16,6 +16,7 @@ window.tamari = (function (lib) {
     jQuery = window.jQuery || false,
 
     ready = false,
+    loggedIn = false,
     routes,
     queue = []; // Queues up requests while waiting for the initial route request
 

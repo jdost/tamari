@@ -1,4 +1,8 @@
 <!doctype html>
+{% macro js(filename) -%}
+   <script type="text/javascript"
+      src="{{ url_for('static', filename='js/' + filename + '.js') }}"> </script>
+{%- endmacro %}
 <html>
    <head>
       % block head
@@ -6,8 +10,8 @@
       % endblock
       <link rel="stylesheet" type="text/css"
          href="{{ url_for('static', filename='css/tamari.css') }}" />
-      <script type="text/javascript"
-         src="{{ url_for('static', filename='js/tamari.js') }}"></script>
+      {{ js('tamari') }}
+      {{ js('app') }}
    </head>
    <body>
       % block body
