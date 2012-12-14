@@ -1,14 +1,17 @@
 # Tamari
 
-A non PHP forum engine.  This is purely a backend with a nice RESTful API.
+A non PHP forum engine.  This will provide a RESTful API along with a packaged demo
+frontend.  For more documentation, view the stuff in the /docs folder.
 
 ## Setup/usage
 
 Was developed inside of a virtualenv so just need one of those:
 
     $ mkvirtualenv tamari
+    $ cp tamari/settings.py_template tamari/settings.py
     $ pip install -r requirements.txt
 
-Then you can run the unittest stuff with the test_tamari.py file or run a dev server
-with runserver.py (this should work if you want to proxy it via a big kid prod type
-web server, I use nginx).
+Edit the tamari/settings.py file to make changes to how you want your application
+to run (the file has comments to explain some stuff).  To run you can either run
+`make serve` if you have makefile or just `python serve.py`.  To run the tests,
+use `make test`.
