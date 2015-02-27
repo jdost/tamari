@@ -10,9 +10,13 @@ users = [
     {"username": "user", "password": "user"},
 ]
 
-forums = []
+root = Forum.get_root()
+forums = [
+    {"name": "subforum", "parent": root},
+]
 
-threads = []
+threads = [
+]
 
 app.config['SERVER_NAME'] = 'localhost'
 with app.app_context():
