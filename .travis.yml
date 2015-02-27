@@ -7,4 +7,4 @@ services:
 install:
    - "make init"
 
-script: make test
+script: NOCOLOR=1 make test
