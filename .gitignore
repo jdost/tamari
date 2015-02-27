@@ -1,4 +1,4 @@
 *.pyc
 TODO
 nginx.conf
-tamari/settings.py
+src/tamari/settings.py

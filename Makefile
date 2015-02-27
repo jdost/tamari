@@ -1,18 +1,38 @@
-LINTER=$(shell if which flake8 > /dev/null; \
-					then which flake8; \
-					else which true; fi)
+PYTHONVERSION = $(shell python --version 2>&1 | sed 's/Python //g')
+PYTHONMAJOR = $(firstword $(subst ., ,${PYTHONVERSION}))
+PYTHONPATH = PYTHONPATH=$(PWD)/src
+
+ifeq "${PYTHONMAJOR}" "2"
+	NOSEOPTS = --with-color
+else
+	NOSEOPTS =
+endif
+
+LINTEROPTS= --ignore=F401 --max-complexity 12
+
+init:
+	pip install -r requirements.txt
+	cp ./src/tamari/settings.py_template ./src/tamari/settings.py
+
+populate:
+	${PYTHONPATH} python ./etc/populate.py
+
 unittest:
-	nosetests --with-color ./tests/*.py
+	nosetests ${NOSEOPTS} ./tests/test_*.py
 
 lint:
-	${LINTER} ./tamari/*.py
-	${LINTER} ./tamari/database/*.py
-	${LINTER} ./tamari/database/*/*.py
+	flake8 ${LINTEROPTS} src/
+	flake8 ${LINTEROPTS} tests/
 
 test: lint unittest
 
 clean:
-	rm ./tamari/*.pyc
+	rm -f ./src/tamari/*.pyc
+	rm -f ./src/tamari/database/*.pyc
+	rm -f ./tests/*.pyc
+
+shell:
+	${PYTHONPATH} python ./etc/console.py
 
 serve:
-	python serve.py
+	${PYTHONPATH} python ./bin/tamari

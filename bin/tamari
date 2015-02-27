@@ -1,0 +1,9 @@
+#!/bin/env python2
+
+from tamari import app
+from tamari import settings
+
+if __name__ == '__main__':
+   app.run(**settings.SERVING)
+
+# vim: ft=python
